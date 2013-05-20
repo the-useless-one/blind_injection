@@ -16,95 +16,61 @@
 #
 #  Copyright 2012 Yannick Méheut <useless@utouch.fr>
 
-import os, sys, getopt
+import os, sys, argparse
 from blind_functions import *
 
-def usage():
+def parse_arguments():
     '''
-    This function is used to display the help message.
-    It is displayed when the user uses the -h or --help options,
-    when he forgets a mandatory argument, or when he uses an
-    unknown option.
+    This function is used to parse the arguments given on the command line.
     '''
 
-    print('-h, --help\tDisplay this message')
-    print('-u, --url\tURL to perform the injection')
-    print('-c, --chars\tFile of authorized characters')
-    print('-s, --string\tString when success')
-    print('--crack_hash\tUse the option if you want')
-    print('\t\tthe program to reverse the hash')
-    print('-l, --length\tLength of the field to retrieve')
-    print('\t\tThe default value is 32 (md5 hash)')
+    # We define an argument parser
+    parser = argparser.ArgumentParser()
 
+    # We define the arguments needed to perform the injection
+    parser.add_argument('-u', '--url', required=True,
+	    help='URL where the injection will be performed')
+    parser.add_argument('-c', '--characters', type=str,
+	    default='0123456789abcdef',
+	    help='authorized characters sorted in increasing order\
+		    (default: %(default)s')
+    parser.add_argument('-s', '--string', type=str, required=True,
+	    help='string the script will look for in the binary search')
+    parser.add_argument('-l', '--length', type=int, default=32
+	    help='length of the hash (default: %(default)s)')
+    parser.add_argument('--crack-hash', action='store_true',
+	    help='flag to use if you want the script to crack the hash')
+
+    # We parse the arguments from the command line
+    args = parser.parse_args()
+
+    # We return the arguments
+    return args
 
 def main():
     '''
-    This is the main function. It parses the arguments
+    This is the main function. It calls the function that parses arguments,
     and call the functions necessary to the injection.
     '''
 
     # We display a copyright message
     print('Blind Injection (Copyright 2012 Yannick Méheut <useless@utouch.fr>)\n')
 
-    # We define the parameters
-    target_url, authorized_characters, string_when_success = '', '', ''
-    crack_hash = False
-    length = 32
+    # We get the argument
+    args = parse_arguments()
 
-    # We retrieve the arguments
-    try:
-	opts, args = getopt.getopt(sys.argv[1:],
-	    'hu:c:s:l:',
-	    ['help', 'url=', 'chars=', 'string=', 'crack_hash', 'length='])
-    except getopt.Getopterror as error:
-	print(error)
-	usage()
-	sys.exit(1)
+    # We perform the injection
+    hash_password = blind_injection(args.url,
+	    args.characters,
+	    args.string,
+	    args.length)
 
-    for o, a in opts:
-	if (o == '-h' or o == '--help'):
-	    usage()
-	    sys.exit()
-	elif (o == '-u' or o == '--url'):
-	    target_url = str(a)
-	elif (o == '-c' or o == '--chars'):
-	    if os.access(a, os.R_OK):
-	    characters_file = open(a, 'r')
-	    authorized_characters = characters_file.read()
-	elif (o == '-s' or o == '--string'):
-	    string_when_success = str(a)
-	elif (o == '--crack_hash'):
-	    crack_hash = True
-	elif (o == '-l' or o == '--length'):
-	    length = int(a)
-	else:
-	    print('unknown option: {0}'.format(0))
-	    usage()
-	    sys.exit(1)
-
-    # If a mandatory argument is missing, we display and
-    # error message, we call usage and we exit
-    if not target_url:
-	print('error: URL not specified')
-	usage()
-	sys.exit(1)
-    if not authorized_characters:
-	print('error: file of authorized characters not specified')
-	usage()
-	sys.exit(1)
-    if not string_when_success:
-	print('error: string when success not specified')
-	usage()
-	sys.exit(1)
-
-    hash_password = blind_injection(target_url,
-	authorized_characters,
-	string_when_success,
-	length)
-
-    # We check if we need to reverse the hash
+    # We reverse the hash if asked to
     if (crack_hash):
-	reverse_hash(hash_password)
+	sys.stdout.write('Reversing the hash... ')
+	sys.stdout.flush()
+	plain_password = reverse_hash(hash_password)
+	sys.stdout.write(plain_password + '\n')
 
 if __name__ == '__main__':
     main()
