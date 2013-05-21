@@ -20,58 +20,58 @@ import os, sys, argparse
 from blind_functions import *
 
 def parse_arguments():
-    '''
-    This function is used to parse the arguments given on the command line.
-    '''
+	'''
+	This function is used to parse the arguments given on the command line.
+	'''
 
-    # We define an argument parser
-    parser = argparser.ArgumentParser()
+	# We define an argument parser
+	parser = argparse.ArgumentParser()
 
-    # We define the arguments needed to perform the injection
-    parser.add_argument('-u', '--url', required=True,
-	    help='URL where the injection will be performed')
-    parser.add_argument('-c', '--characters', type=str,
-	    default='0123456789abcdef',
-	    help='authorized characters sorted in increasing order\
-		    (default: %(default)s')
-    parser.add_argument('-s', '--string', type=str, required=True,
-	    help='string the script will look for in the binary search')
-    parser.add_argument('-l', '--length', type=int, default=32
-	    help='length of the hash (default: %(default)s)')
-    parser.add_argument('--crack-hash', action='store_true',
-	    help='flag to use if you want the script to crack the hash')
+	# We define the arguments needed to perform the injection
+	parser.add_argument('-u', '--url', required=True,
+		help='URL where the injection will be performed')
+	parser.add_argument('-c', '--characters', type=str,
+		default='0123456789abcdef',
+		help='authorized characters sorted in increasing order\
+			(default: %(default)s')
+	parser.add_argument('-s', '--string', type=str, required=True,
+		help='string the script will look for in the binary search')
+	parser.add_argument('-l', '--length', type=int, default=32,
+		help='length of the hash (default: %(default)s)')
+	parser.add_argument('--crack-hash', action='store_true',
+		dest='crack_hash',
+		help='flag to use if you want the script to crack the hash')
 
-    # We parse the arguments from the command line
-    args = parser.parse_args()
+	# We parse the arguments from the command line
+	args = parser.parse_args()
 
-    # We return the arguments
-    return args
+	# We return the arguments
+	return args
 
 def main():
-    '''
-    This is the main function. It calls the function that parses arguments,
-    and call the functions necessary to the injection.
-    '''
+	'''
+	This is the main function. It calls the function that parses arguments,
+	and call the functions necessary to the injection.
+	'''
 
-    # We display a copyright message
-    print('Blind Injection (Copyright 2012 Yannick Méheut <useless@utouch.fr>)\n')
+	# We display a copyright message
+	print('Blind Injection (Copyright 2012 Yannick Méheut <useless@utouch.fr>)\n')
 
-    # We get the argument
-    args = parse_arguments()
+	# We get the argument
+	args = parse_arguments()
 
-    # We perform the injection
-    hash_password = blind_injection(args.url,
-	    args.characters,
-	    args.string,
-	    args.length)
+	# We perform the injection
+	hash_password = blind_injection(args.url,
+		args.characters,
+		args.string,
+		args.length) 
 
-    # We reverse the hash if asked to
-    if (crack_hash):
-	sys.stdout.write('Reversing the hash... ')
-	sys.stdout.flush()
-	plain_password = reverse_hash(hash_password)
-	sys.stdout.write(plain_password + '\n')
+	if args.crack_hash:
+		print('Reversing hash...', end=' ')
+		sys.stdout.flush()
+		plain_password = reverse_hash(hash_password)
+		print(plain_password)
 
 if __name__ == '__main__':
-    main()
+	main()
 
