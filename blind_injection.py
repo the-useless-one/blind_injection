@@ -66,6 +66,7 @@ def main():
 		args.string,
 		args.length) 
 
+	# If the user asked to crack the hash, we do so
 	if args.crack_hash:
 		print('Reversing hash...', end=' ')
 		sys.stdout.flush()

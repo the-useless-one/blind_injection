@@ -42,6 +42,7 @@ def blind_injection(target_url, authorized_characters, string_when_success, leng
 		# binary search (we can't test the equality)
 		c, old_c = 0, 0
 
+		# We perform a binary search to find the right character
 		while (a < b):
 			old_c = c
 			c = int((a + b)/2)
@@ -89,7 +90,7 @@ def blind_injection(target_url, authorized_characters, string_when_success, leng
 def reverse_hash(hash_to_reverse):
 	'''
 	This function is used to reverse a MD5 hash.
-	It uses an online tool: http://tools.benramsey.com/md5/md5.php
+	It uses an online tool: http://md5.gromweb.com/query/
 	It then parses the result page to find the plain password.
 	'''
 
