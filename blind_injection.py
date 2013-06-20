@@ -73,14 +73,16 @@ def main():
 
 	# If the user asked to crack the hash, we do so
 	if args.crack_hash:
-		print('Reversing hash...', end=' ')
+		print('[wait] reversing hash:', end='\t')
 		sys.stdout.flush()
 		try:
 			plain_password = reverse_hash.reverse_hash(hash_password)
 		except NotImplementedError:
 			print('error: no method to reverse this kind of hash')
+			print('\r[fail]')
 		else:
-			print(plain_password)
+			print(plain_password, end='')
+			print('\r[done]')
 
 if __name__ == '__main__':
 	main()

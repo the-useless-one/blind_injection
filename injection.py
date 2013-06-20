@@ -30,7 +30,7 @@ def injection(target_url, authorized_characters, string_when_success, length):
 	The function will return the found password.
 	'''
 
-	print('Retrieving password...', end=' ')
+	print('[wait] retrieving password:', end='\t')
 	sys.stdout.flush()
 	password = ''
 	ascii_password = ''
@@ -82,9 +82,9 @@ def injection(target_url, authorized_characters, string_when_success, length):
 		sys.stdout.flush()
 		# We add it to the password
 		password += new_character
-		ascii_password += str(ord(new_character)) + ','
+		ascii_password += '{0},'.format(str(ord(new_character)))
 
-	print('')
+	print('\r[done]')
 
 	return password
 
