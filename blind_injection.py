@@ -14,7 +14,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#  Copyright 2012 Yannick Méheut <useless (at) utouch (dot) fr>
+#  Copyright 2013 Yannick Méheut <useless (at) utouch (dot) fr>
 
 import os
 import sys
@@ -36,16 +36,16 @@ def parse_arguments():
 		help='URL where the injection will be performed')
 	parser.add_argument('-c', '--characters', type=str,
 		default='0123456789abcdef',
-		help='authorized characters sorted in increasing order\
-			(default: %(default)s)')
+		help='authorized characters sorted in increasing order '
+			'(default: %(default)s)')
 	parser.add_argument('-s', '--string', type=str, required=True,
 		help='string the script will look for in the binary search')
 	parser.add_argument('-l', '--length', type=int, default=32,
 		help='length of the hash (default: %(default)s)')
 	parser.add_argument('--crack-hash', action='store_true',
 		dest='crack_hash',
-		help='flag to use if you want the script to crack the hash \
-				(only MD5 supported for now)')
+		help='flag to use if you want the script to crack the hash '
+				'(only MD5 supported for now)')
 
 	# We parse the arguments from the command line
 	args = parser.parse_args()
@@ -60,15 +60,14 @@ def main():
 	'''
 
 	# We display a copyright message
-	print('Blind Injection (Copyright 2012 Yannick Méheut <useless (at) utouch (dot) fr>)\n')
+	print('Blind Injection (Copyright 2013 Yannick Méheut '
+        '<useless (at) utouch (dot) fr>)\n')
 
 	# We get the argument
 	args = parse_arguments()
 
 	# We perform the injection
-	hash_password = injection.injection(args.url,
-		args.characters,
-		args.string,
+	hash_password = injection.injection(args.url, args.characters, args.string,
 		args.length) 
 
 	# If the user asked to crack the hash, we do so
@@ -78,11 +77,9 @@ def main():
 		try:
 			plain_password = reverse_hash.reverse_hash(hash_password)
 		except NotImplementedError:
-			print('error: no method to reverse this kind of hash')
-			print('\r[fail]')
+			print('error: no method to reverse this kind of hash\r[fail]')
 		else:
-			print(plain_password, end='')
-			print('\r[done]')
+			print(plain_password + '\r[done]')
 
 if __name__ == '__main__':
 	main()

