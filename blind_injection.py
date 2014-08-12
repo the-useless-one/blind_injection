@@ -14,76 +14,63 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#  Copyright 2012 Yannick Méheut <useless (at) utouch (dot) fr>
+#  Copyright 2014 Yannick Méheut <useless (at) utouch (dot) fr>
 
 import os
 import sys
 import argparse
 
 import injection
-import reverse_hash
 
 def parse_arguments():
-	'''
-	This function is used to parse the arguments given on the command line.
-	'''
+    '''
+    This function is used to parse the arguments given on the command line.
+    '''
 
-	# We define an argument parser
-	parser = argparse.ArgumentParser()
+    # We define an argument parser
+    parser = argparse.ArgumentParser()
 
-	# We define the arguments needed to perform the injection
-	parser.add_argument('-u', '--url', required=True,
-		help='URL where the injection will be performed')
-	parser.add_argument('-c', '--characters', type=str,
-		default='0123456789abcdef',
-		help='authorized characters sorted in increasing order\
-			(default: %(default)s)')
-	parser.add_argument('-s', '--string', type=str, required=True,
-		help='string the script will look for in the binary search')
-	parser.add_argument('-l', '--length', type=int, default=32,
-		help='length of the hash (default: %(default)s)')
-	parser.add_argument('--crack-hash', action='store_true',
-		dest='crack_hash',
-		help='flag to use if you want the script to crack the hash \
-				(only MD5 supported for now)')
+    # We define the arguments needed to perform the injection
+    parser.add_argument('-u', '--url', required=True,
+        help='URL where the injection will be performed')
+    parser.add_argument('-s', '--string', type=str, required=True,
+        help='string the script will look for in the binary search')
+    parser.add_argument('-c', '--column', type=str, required=True,
+        help='column you want to get')
+    parser.add_argument('-t', '--table', type=str, required=True,
+        help='table where the column is')
+    parser.add_argument('-w', '--where', type=str, required=False,
+        help='WHERE condition', default='')
+    parser.add_argument('-i', '--index', type=int, required=False,
+        help='index of the desired row', default=0)
 
-	# We parse the arguments from the command line
-	args = parser.parse_args()
+    # We parse the arguments from the command line
+    args = parser.parse_args()
 
-	# We return the arguments
-	return args
+    # We return the arguments
+    return args
 
 def main():
-	'''
-	This is the main function. It calls the function that parses arguments,
-	and call the functions necessary to the injection.
-	'''
+    '''
+    This is the main function. It calls the function that parses arguments,
+    and call the functions necessary to the injection.
+    '''
 
-	# We display a copyright message
-	print('Blind Injection (Copyright 2012 Yannick Méheut <useless (at) utouch (dot) fr>)\n')
+    # We display a copyright message
+    print('Blind Injection (Copyright 2014 Yannick Méheut <useless (at) utouch (dot) fr>)\n')
 
-	# We get the argument
-	args = parse_arguments()
+    # We get the argument
+    args = parse_arguments()
 
-	# We perform the injection
-	hash_password = injection.injection(args.url,
-		args.characters,
-		args.string,
-		args.length) 
+    # We perform the injection
+    result = injection.injection(args.url, args.string, args.column,
+            args.table, args.where, args.index)
 
-	# If the user asked to crack the hash, we do so
-	if args.crack_hash:
-		print('[wait] reversing hash:', end='\t')
-		sys.stdout.flush()
-		try:
-			plain_password = reverse_hash.reverse_hash(hash_password)
-		except NotImplementedError:
-			print('error: no method to reverse this kind of hash')
-			print('\r[fail]')
-		else:
-			print(plain_password, end='')
-			print('\r[done]')
+    if result:
+        print('found: {0}'.format(result))
+    else:
+        print('no result found')
 
 if __name__ == '__main__':
-	main()
+    main()
 
